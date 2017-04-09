@@ -17,8 +17,8 @@ import matplotlib.patches as mpatches
 
 num_tasks = 5
 num_weights = 6
-alpha = 1
-beta = 1
+alpha = 0
+beta = 0
 num_epochs = 1000
 eta = .01
 
@@ -68,6 +68,7 @@ def maml(x, y, weights_i):
         for weight_i,grad in zip(weights_i,grads):
             save_updates.append(tf.Variable(tf.zeros(weight_i.get_shape())))
             #get the look-ahead gradient
+            l = tf.square(inference(x[i]) - y[i]) 
             g.append(tf.gradients(l,weight_i - alpha * grad))
 
         j = 0
@@ -90,24 +91,22 @@ y_pred = inference(x_)
 
 model_variables = tf.get_collection('model_variables')
 loss = tf.pow(y_pred - y_,2)
-optim = tf.train.GradientDescentOptimizer(eta).minimize(loss, var_list=model_variables)
+optim = tf.train.GradientDescentOptimizer(eta).minimize(loss, var_list = model_variables)
 
 run_iter = maml(x_,y_,model_variables)
 
 
 #create sine wave data
 def data():
-    x = np.random.uniform(0,10,size=num_tasks)
-    y =  np.arange(1,num_tasks+1) *  np.sin(x)
+    x = np.random.uniform(-5,5,size=num_tasks)
+    y =  np.arange(1,num_tasks+1) *  np.sin(x) + 10
     return [x,y]
 
 def particular_data(task,size=1): #task refers to amplitude
-    x = np.random.uniform(0,10,size=size)
-    y = task * np.sin(x)
+    x = np.random.uniform(-5,5,size=size)
+    y = task * np.sin(x) + 10
     return [x,y]
 #
-
-
 
 sess = tf.Session()
 sess.run(tf.global_variables_initializer())
